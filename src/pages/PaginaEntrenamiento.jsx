@@ -220,8 +220,42 @@ const PaginaEntrenamiento = () => {
       });
       docArray.map((item) => {
         item.MatrizInicial = JSON.parse(item.MatrizInicial);
-        item.UmbralInicial = JSON.parse(item.UmbralInicial);
-        item.PesosIniciales = JSON.parse(item.PesosIniciales);
+        item.UmbralesInicialesCapa0Capa1 = JSON.parse(
+          item.UmbralesInicialesCapa0Capa1
+        );
+        item.PesosInicialesCapa0Capa1 = JSON.parse(
+          item.PesosInicialesCapa0Capa1
+        );
+        item.PesosInicialesCapa1Capa2
+          ? (item.PesosInicialesCapa1Capa2 = JSON.parse(
+              item.PesosInicialesCapa1Capa2
+            ))
+          : 0;
+        item.UmbralesInicialesCapa1Capa2
+          ? (item.UmbralesInicialesCapa1Capa2 = JSON.parse(
+              item.UmbralesInicialesCapa1Capa2
+            ))
+          : 0;
+        item.PesosInicialesCapa2Capa3
+          ? (item.PesosInicialesCapa2Capa3 = JSON.parse(
+              item.PesosInicialesCapa2Capa3
+            ))
+          : 0;
+        item.UmbralesInicialesCapa2Capa3
+          ? (item.UmbralesInicialesCapa2Capa3 = JSON.parse(
+              item.UmbralesInicialesCapa2Capa3
+            ))
+          : 0;
+        item.PesosInicialesCapa3Capa4
+          ? (item.PesosInicialesCapa3Capa4 = JSON.parse(
+              item.PesosInicialesCapa3Capa4
+            ))
+          : 0;
+        item.UmbralesInicialesCapa3Capa4
+          ? (item.UmbralesInicialesCapa3Capa4 = JSON.parse(
+              item.UmbralesInicialesCapa3Capa4
+            ))
+          : 0;
       });
       setDataform(docArray);
     });
@@ -263,14 +297,16 @@ const PaginaEntrenamiento = () => {
                     {dataItem.NumSalidas} | Patrones: {dataItem.NumPatrones}
                   </p>
                   <TableDrawer data={dataItem.MatrizInicial} />
-                  <div className="gap-4 flex  lg:flex-row form__section">
+                  {/* <div className="gap-4 flex  lg:flex-row form__section">
                     <div className="flex flex-col lg:w-1/2 sm:w-screen">
                       <h1>Pesos Iniciales</h1>
-                      <TableDrawer data={dataItem.PesosIniciales} />
+                      <TableDrawer data={dataItem.PesosInicialesCapa0Capa1} />
                     </div>
                     <div className="flex flex-col lg:w-1/2 sm:w-full">
                       <h1>Umbral Inicial</h1>
-                      <TableDrawer data={dataItem.UmbralInicial} />
+                      <TableDrawer
+                        data={dataItem.UmbralesInicialesCapa0Capa1}
+                      />
                     </div>
                   </div>
                   <div className="gap-4 flex  lg:flex-row mt-3 form__section">
@@ -282,21 +318,8 @@ const PaginaEntrenamiento = () => {
                       <h1>Ultimo Umbral</h1>
                       <TableDrawer data={ultimoUmbral} />
                     </div>
-                  </div>
-                  <div>
-                    <Line
-                      datasetIdKey="id"
-                      data={{
-                        labels: historialIteraciones,
-                        datasets: [
-                          {
-                            label: "Error",
-                            data: historialErroresIteracion,
-                          },
-                        ],
-                      }}
-                    ></Line>
-                  </div>
+                  </div> */}
+
                   <div className="flex gap-4">
                     <button
                       onClick={() => {

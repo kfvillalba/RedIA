@@ -12,8 +12,10 @@ const FormEntrenamiento = () => {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm();
+  const [numCapas, setNumCapas] = useState([1]);
   const [csvData, setCsvData] = useState([]);
   const [pesosIniciales, setpesosIniciales] = useState([]);
   const [umbralInicial, setumbralInicial] = useState([]);
@@ -61,31 +63,99 @@ const FormEntrenamiento = () => {
 
     setCsvData(parsedData);
   };
+
+  const handleCapas = (event) => {
+    let array = [];
+    for (let index = 0; index < event.target.value; index++) {
+      array.push(index + 1);
+    }
+    setNumCapas(array);
+  };
   const onSubmit = async (data) => {
-    const pesosInicialesData = generarEstructura(
+    data.funcionActivacionCapa2 ? 0 : (data.funcionActivacionCapa2 = 0);
+    data.funcionActivacionCapa3 ? 0 : (data.funcionActivacionCapa3 = 0);
+    data.numNeuronasCapa2 ? 0 : (data.numNeuronasCapa2 = 0);
+    data.numNeuronasCapa3 ? 0 : (data.numNeuronasCapa3 = 0);
+    const pesosInicialesCapa0Capa1 = generarEstructura(
       data.Entradas,
+      data.numNeuronasCapa1,
+      -1,
+      1
+    );
+    const umbralesInicialesCapa0Capa1 = generarEstructura(
+      data.numNeuronasCapa1,
+      1,
+      -1,
+      1
+    );
+    const pesosInicialesCapa1Capa2 = generarEstructura(
+      data.numNeuronasCapa1,
+      data.numNeuronasCapa2,
+      -1,
+      1
+    );
+    const umbralesInicialesCapa1Capa2 = generarEstructura(
+      data.numNeuronasCapa2,
+      1,
+      -1,
+      1
+    );
+    const pesosInicialesCapa2Capa3 = generarEstructura(
+      data.numNeuronasCapa2,
+      data.numNeuronasCapa3,
+      -1,
+      1
+    );
+    const umbralesInicialesCapa2Capa3 = generarEstructura(
+      data.numNeuronasCapa3,
+      1,
+      -1,
+      1
+    );
+    const pesosInicialesCapa3Capa4 = generarEstructura(
+      data.numNeuronasCapa3,
       data.Salidas,
       -1,
       1
     );
-    const umbralInicialData = generarEstructura(data.Salidas, 1, -1, 1);
+    const umbralesInicialesCapa3Capa4 = generarEstructura(
+      data.Salidas,
+      1,
+      -1,
+      1
+    );
 
-    setpesosIniciales(pesosInicialesData);
-    setumbralInicial(umbralInicialData);
+    /*   setpesosIniciales(pesosInicialesData);
+    setumbralInicial(umbralInicialData); */
 
     await addDoc(collection(db, "IA-DATABASE"), {
       Nombre: data.Nombre,
       NumEntradas: data.Entradas,
+      FuncionActivacionEntrada: data.funcionActivacionEntrada,
       NumSalidas: data.Salidas,
+      FuncionActivacionSalida: data.funcionActivacionSalida,
       NumPatrones: data.Patrones,
       RataApendizaje: data.RataApendizaje,
-      TipoEntrenamiento: data.tipoEntrenamiento,
+      NumCapasOcultas: data.NumCapas,
+      NumNeuronasCapa1: data.numNeuronasCapa1,
+      FunActivacionCapa1: data.funcionActivacionCapa1,
+      NumNeuronasCapa2: data.numNeuronasCapa2,
+      FunActivacionCapa2: data.funcionActivacionCapa2,
+      NumNeuronasCapa3: data.numNeuronasCapa3,
+      FunActivacionCapa3: data.funcionActivacionCapa3,
       NumIteraciones: data.Iteraciones,
       ErrorMaximo: data.ErrorMaximo,
       MatrizInicial: JSON.stringify(csvData),
-      PesosIniciales: JSON.stringify(pesosInicialesData),
-      UmbralInicial: JSON.stringify(umbralInicialData),
+      PesosInicialesCapa0Capa1: JSON.stringify(pesosInicialesCapa0Capa1),
+      UmbralesInicialesCapa0Capa1: JSON.stringify(umbralesInicialesCapa0Capa1),
+      PesosInicialesCapa1Capa2: JSON.stringify(pesosInicialesCapa1Capa2),
+      UmbralesInicialesCapa1Capa2: JSON.stringify(umbralesInicialesCapa1Capa2),
+      PesosInicialesCapa2Capa3: JSON.stringify(pesosInicialesCapa2Capa3),
+      UmbralesInicialesCapa2Capa3: JSON.stringify(umbralesInicialesCapa2Capa3),
+      PesosInicialesCapa3Capa4: JSON.stringify(pesosInicialesCapa3Capa4),
+      UmbralesInicialesCapa3Capa4: JSON.stringify(umbralesInicialesCapa3Capa4),
     });
+    console.log(data);
 
     Navigate("/entrenamiento");
     reset();
@@ -147,6 +217,28 @@ const FormEntrenamiento = () => {
             />
             <b className="spam_form_error">{errors?.Entradas?.message}</b>
           </div>
+          <div className="funcionActivacionEntrada">
+            <label className="label__form" htmlFor="funcionActivacionEntrada">
+              Funcion de Activacion de la Capa de Entrada
+            </label>
+            <select
+              {...register("funcionActivacionEntrada", {
+                required: "Campo Obligatorio",
+                min: {
+                  value: 1,
+                  message: "Seleccione una Funcion de Activacion",
+                },
+              })}
+              className="input__form"
+              id="funcionActivacionEntrada"
+            >
+              <option value="0">Seleccione una Funcion de Activacion</option>
+              <option value="Sigmoide">Sigmoide</option>
+              <option value="Gausiana">Gausiana</option>
+              <option value="Seno">Seno</option>
+              <option value="Lineal">Lineal</option>
+            </select>
+          </div>
           <div className="Salidas">
             <label htmlFor="Salidas" className="label__form ">
               Salidas.
@@ -163,6 +255,28 @@ const FormEntrenamiento = () => {
               })}
             />
             <b className="spam_form_error">{errors?.Salidas?.message}</b>
+          </div>
+          <div className="funcionActivacionSalida">
+            <label className="label__form" htmlFor="funcionActivacionSalida">
+              Funcion de Activacion de la Capa de Salida
+            </label>
+            <select
+              {...register("funcionActivacionSalida", {
+                required: "Campo Obligatorio",
+                min: {
+                  value: 1,
+                  message: "Seleccione una Funcion de Activacion",
+                },
+              })}
+              className="input__form"
+              id="funcionActivacionSalida"
+            >
+              <option value="0">Seleccione una Funcion de Activacion</option>
+              <option value="Sigmoide">Sigmoide</option>
+              <option value="Gausiana">Gausiana</option>
+              <option value="Seno">Seno</option>
+              <option value="Lineal">Lineal</option>
+            </select>
           </div>
           <div className="Patrones">
             <label htmlFor="Patrones" className="label__form ">
@@ -203,24 +317,79 @@ const FormEntrenamiento = () => {
             />
             <b className="spam_form_error">{errors?.RataApendizaje?.message}</b>
           </div>
-          <div className="tipoEntrenamiento">
-            <label className="label__form" htmlFor="tipoEntrenamiento">
-              Tipo de entrenamiento.
+        </div>
+        <div className="form__section">
+          <h1 className="text-center mb-3">Configuracion de la Red</h1>
+          <div className="#deCapasOcultas">
+            <label className="label__form" htmlFor="NumCapas">
+              Seleccione el Numero de Capas Ocultas
             </label>
             <select
-              {...register("tipoEntrenamiento", {
+              {...register("NumCapas", {
                 required: "Campo Obligatorio",
-                min: { value: 1, message: "Seleccione un entrenamiento" },
               })}
+              onChange={handleCapas}
               className="input__form"
-              id="tipoEntrenamiento"
+              id="NumCapas"
+              defaultValue={1}
             >
-              <option value="0">Seleecione un entrenamiento</option>
-              <option value="1">Regla Delta</option>
+              <option value={1}>1 Capa</option>
+              <option value={2}>2 Capas</option>
+              <option value={3}>3 Capas</option>
             </select>
-            <b className="spam_form_error">
-              {errors?.tipoEntrenamiento?.message}
-            </b>
+            <b className="spam_form_error">{errors?.NumCapas?.message}</b>
+            {numCapas.map((e, i) => (
+              <div key={e} className="form__section">
+                <h2 className="text-center font-semibold">
+                  {`Configuracion Capa Oculta ${e}`}
+                </h2>
+                <div className={`numNeuronasCapa${e}`}>
+                  <label
+                    htmlFor={`numNeuronasCapa${e}`}
+                    className="label__form "
+                  >
+                    {`Numero de Neuronas`}
+                  </label>
+                  <input
+                    onWheel={(e) => e.target.blur()}
+                    id={`numNeuronasCapa${e}`}
+                    className="input__form"
+                    type="number"
+                    {...register(`numNeuronasCapa${e}`, {
+                      valueAsNumber: true,
+                      required: "Campo Obligatorio",
+                      min: { value: 0, message: "Minimo 1 iteracion" },
+                    })}
+                  />
+                </div>
+                <div className={`funcionActivacionCapa${e}`}>
+                  <label
+                    className="label__form"
+                    htmlFor={`funcionActivacionCapa${e}`}
+                  >
+                    {`Funcion de Activacion`}
+                  </label>
+                  <select
+                    {...register(`funcionActivacionCapa${e}`, {
+                      required: "Campo Obligatorio",
+                      min: {
+                        value: 1,
+                        message: "Seleccione una Funcion de Activacion",
+                      },
+                    })}
+                    className="input__form"
+                    id={`funcionActivacionCapa${e}`}
+                  >
+                    <option value="0">
+                      Seleccione una Funcion de Activacion
+                    </option>
+                    <option value="Sigmoide">Sigmoide</option>
+                    <option value="Gausiana">Gausiana</option>
+                    <option value="Seno">Seno</option>
+                  </select>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         <div className="form__section">

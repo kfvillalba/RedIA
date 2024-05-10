@@ -3,7 +3,6 @@ import Navbar from "../components/Navbar";
 import TableDrawer from "../components/TableDrawer";
 import { collection, doc, onSnapshot, query } from "firebase/firestore";
 import { db } from "../components/firebase";
-import { Chart as ChartJS } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 
 const PaginaEntrenamiento = () => {

@@ -1,18 +1,36 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const Navbar = () => {
   return (
     <div className="rounded-b-lg shadow-lg flex place-content-center lg:w-1/2 mx-auto py-3 bg-azul-oscuro text-white sm:w-full">
-      <button className="btn__nav__active ">
-        <Link to="/">Datos de Entrada</Link>
-      </button>
-      <button className="btn__nav">
-        <Link to="/entrenamiento">Entrenamiento</Link>
-      </button>
-      <button className="btn__nav">
-        <Link to="/simulacion">Simulacion</Link>
-      </button>
+      <NavLink to={"/"}>
+        {({ isActive }) => {
+          return (
+            <button className={isActive ? "btn__nav__active" : "btn__nav"}>
+              Formulario
+            </button>
+          );
+        }}
+      </NavLink>
+      <NavLink to={"/entrenamiento"}>
+        {({ isActive }) => {
+          return (
+            <button className={isActive ? "btn__nav__active" : "btn__nav"}>
+              Entrenamiento
+            </button>
+          );
+        }}
+      </NavLink>
+      <NavLink to={"/simulacion"}>
+        {({ isActive }) => {
+          return (
+            <button className={isActive ? "btn__nav__active" : "btn__nav"}>
+              Simulacion
+            </button>
+          );
+        }}
+      </NavLink>
     </div>
   );
 };
