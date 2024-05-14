@@ -4,10 +4,6 @@ import TableDrawer from "../components/TableDrawer";
 import { collection, onSnapshot, query, sum } from "firebase/firestore";
 import { db } from "../components/firebase";
 
-import { Line } from "react-chartjs-2";
-import { parse } from "postcss";
-import { push } from "firebase/database";
-
 const PaginaEntrenamiento = () => {
   // firebase
   const [dataForm, setDataform] = useState([]);
@@ -42,22 +38,22 @@ const PaginaEntrenamiento = () => {
   }
   const getPesos = () => {
     let pesos = [];
-    dataItem.PesosInicialesCapa3Capa4.length > 0
+    dataItem.PesosInicialesCapa3Capa4[0] != ""
       ? pesos.unshift(
           convertirMatrizANumeros(dataItem.PesosInicialesCapa3Capa4)
         )
       : 0;
-    dataItem.PesosInicialesCapa2Capa3.length > 0
+    dataItem.PesosInicialesCapa2Capa3[0] != ""
       ? pesos.unshift(
           convertirMatrizANumeros(dataItem.PesosInicialesCapa2Capa3)
         )
       : 0;
-    dataItem.PesosInicialesCapa1Capa2.length > 0
+    dataItem.PesosInicialesCapa1Capa2[0] != ""
       ? pesos.unshift(
           convertirMatrizANumeros(dataItem.PesosInicialesCapa1Capa2)
         )
       : 0;
-    dataItem.PesosInicialesCapa0Capa1.length > 0
+    dataItem.PesosInicialesCapa0Capa1[0] != ""
       ? pesos.unshift(
           convertirMatrizANumeros(dataItem.PesosInicialesCapa0Capa1)
         )
@@ -140,23 +136,36 @@ const PaginaEntrenamiento = () => {
       erroresPatron.reduce((a, b) => a + b, 0) / erroresPatron.length
     );
   };
-  const calcularSalida = (pesosI, umbralI, patronI, funcAct) => {
-    let salidas = [];
-
+  const calcularSalida = (pesosI, umbralInicial, patronI, funcAct) => {
+    /*     let patron = patronI;
+    pesosI.map((pesos, index) => {
+      let salidas = [];
+      let umbral = umbralInicial[index];
+      console.log(pesos, umbral);
+      patron = salidas;
+      pesos.map((columna, col) => {
+        let suma = 0;
+        suma += umbral[col];
+        let salida = Sigmoid(suma);
+        salidas.push(salida);
+        console.log(salidas);
+        columna.map((fila, fil) => {
+          console.log(patron[col], "*", pesos[col][fil]);
+        });
+      });
+    }); */
     let patron = patronI;
-    for (let index = 0; index < umbralI.length; index++) {
-      let salidasTemp = [];
+    let salidas = [];
+    for (let index = 0; index < umbralInicial.length; index++) {
       let pesos = pesosI[index];
-      let umbral = umbralI[index];
-
+      let umbral = umbralInicial[index];
+      let salidasTemp = [];
       for (let i = 0; i < pesos.length; i++) {
         let suma = 0;
-        for (let j = 0; j < umbral.length; j++) {
+        for (let j = 0; j < pesos[0].length; j++) {
           suma += patron[j] * pesos[i][j];
         }
-
         suma += umbral[i];
-
         let salida;
         switch (funcAct) {
           case "Sigmoid":
@@ -186,12 +195,14 @@ const PaginaEntrenamiento = () => {
     predictedOutputs,
     expectedOutputs,
     pesosI,
-    inputs
+    inputs,
+    funcAct
   ) => {
     let costos = [];
     let last = predictedOutputs.length - 1;
     let lastPesos = pesosI.length - 1;
     for (let k = pesosI.length - 1; k >= 0; k--) {
+      console.log(pesosI);
       let pesosTemp = pesosI[lastPesos];
       let pesos = pesosI[k];
       let costosTemp = [];
@@ -207,20 +218,61 @@ const PaginaEntrenamiento = () => {
               "*",
               predictedOutputs[last - 1][j]
             ); */
-            row.push(
-              (predictedOutputs[last][i] - expectedOutputs[i]) *
-                sigmoidDerivada(predictedOutputs[last][i]) *
-                predictedOutputs[last - 1][j]
-            );
+            switch (funcAct) {
+              case "Sigmoid":
+                row.push(
+                  (predictedOutputs[last][i] - expectedOutputs[i]) *
+                    sigmoidDerivada(predictedOutputs[last][i]) *
+                    predictedOutputs[last - 1][j]
+                );
+                break;
+              case "Tanh":
+                row.push(
+                  (predictedOutputs[last][i] - expectedOutputs[i]) *
+                    tanhDerivada(predictedOutputs[last][i]) *
+                    predictedOutputs[last - 1][j]
+                );
+                break;
+              case "ReLU":
+                row.push(
+                  (predictedOutputs[last][i] - expectedOutputs[i]) *
+                    reluDerivada(predictedOutputs[last][i]) *
+                    predictedOutputs[last - 1][j]
+                );
+                break;
+            }
           } else {
             for (let m = 0; m < predictedOutputs[last].length; m++) {
-              suma +=
-                (predictedOutputs[last][m] - expectedOutputs[m]) *
-                sigmoidDerivada(predictedOutputs[last][m]) *
-                pesosTemp[m][j] *
-                (predictedOutputs[last - 1][i] *
-                  (1 - predictedOutputs[last - 1][i])) *
-                inputs[i];
+              switch (funcAct) {
+                case "Sigmoid":
+                  suma +=
+                    (predictedOutputs[last][m] - expectedOutputs[m]) *
+                    sigmoidDerivada(predictedOutputs[last][m]) *
+                    pesosTemp[m][j] *
+                    (predictedOutputs[last - 1][i] *
+                      (1 - predictedOutputs[last - 1][i])) *
+                    inputs[i];
+                  break;
+                case "Tanh":
+                  suma +=
+                    (predictedOutputs[last][m] - expectedOutputs[m]) *
+                    tanhDerivada(predictedOutputs[last][m]) *
+                    pesosTemp[m][j] *
+                    (predictedOutputs[last - 1][i] *
+                      (1 - predictedOutputs[last - 1][i])) *
+                    inputs[i];
+                  break;
+                case "ReLU":
+                  suma +=
+                    (predictedOutputs[last][m] - expectedOutputs[m]) *
+                    reluDerivada(predictedOutputs[last][m]) *
+                    pesosTemp[m][j] *
+                    (predictedOutputs[last - 1][i] *
+                      (1 - predictedOutputs[last - 1][i])) *
+                    inputs[i];
+                  break;
+              }
+
               /*   console.log(
                 predictedOutputs[last][m] - expectedOutputs[m],
                 "*",
@@ -273,6 +325,7 @@ const PaginaEntrenamiento = () => {
   }
 
   let errorIteracion = 1;
+
   const iterarWhile = () => {
     let predictedOutputs = [];
     let inputs = getPatrones(dataItem.MatrizInicial, dataItem.NumEntradas);
@@ -292,7 +345,7 @@ const PaginaEntrenamiento = () => {
         console.log("Iteracion: ", count);
         inputs.map((inputs) => {
           // Calculamos las salidas
-          predictedOutputs = calcularSalida(pesos, umbrales, inputs, "Sigmoid");
+          predictedOutputs = calcularSalida(pesos, umbrales, inputs, "Tanh");
           //Calculamos el error del patron
           let totalError = calcularTotalError(
             predictedOutputs,
@@ -305,16 +358,18 @@ const PaginaEntrenamiento = () => {
             predictedOutputs,
             expectedOutputs,
             pesos,
-            inputs
+            inputs,
+            "Tanh"
           );
 
           //calculamos los pesos nuevos
-          pesos = calcularPesosNuevos(pesos, 0.6, costosPesos);
+          pesos = calcularPesosNuevos(
+            pesos,
+            dataItem.RataApendizaje,
+            costosPesos
+          );
           //calcularmos el error de la iteracion
-          errorIteracion = calcularErrorIteracion(erroresPatron);
-          //Guardamos el Error vs Iteracion
-          let iteracion = { Iteracion: [count], Error: [errorIteracion] };
-          ERS.push(iteracion);
+
           //logs
 
           console.log("Costos: ", costosPesos);
@@ -322,8 +377,13 @@ const PaginaEntrenamiento = () => {
           console.log("Entardas: ", inputs);
           console.log("Salidas Predecidas: ", predictedOutputs);
           console.log("Salidas Esperadas: ", expectedOutputs);
-          console.log("ERS: ", ERS[ERS.length - 1].Error);
         });
+
+        errorIteracion = calcularErrorIteracion(erroresPatron);
+        //Guardamos el Error vs Iteracion
+        let iteracion = { Iteracion: [count], Error: [errorIteracion] };
+        ERS.push(iteracion);
+        console.log("ERS: ", ERS[ERS.length - 1].Error);
         count++;
       }
       setTimeout(iterarWhile, 1);

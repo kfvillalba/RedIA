@@ -77,8 +77,8 @@ const FormEntrenamiento = () => {
     data.numNeuronasCapa2 ? 0 : (data.numNeuronasCapa2 = 0);
     data.numNeuronasCapa3 ? 0 : (data.numNeuronasCapa3 = 0);
     const pesosInicialesCapa0Capa1 = generarEstructura(
-      data.Entradas,
       data.numNeuronasCapa1,
+      data.Entradas,
       -1,
       1
     );
@@ -89,8 +89,8 @@ const FormEntrenamiento = () => {
       1
     );
     const pesosInicialesCapa1Capa2 = generarEstructura(
-      data.numNeuronasCapa1,
       data.numNeuronasCapa2 == 0 ? data.Salidas : data.numNeuronasCapa2,
+      data.numNeuronasCapa1,
       -1,
       1
     );
@@ -101,8 +101,8 @@ const FormEntrenamiento = () => {
       1
     );
     const pesosInicialesCapa2Capa3 = generarEstructura(
-      data.numNeuronasCapa2,
       data.numNeuronasCapa3 == 0 ? data.Salidas : data.numNeuronasCapa3,
+      data.numNeuronasCapa2,
       -1,
       1
     );
@@ -113,8 +113,8 @@ const FormEntrenamiento = () => {
       1
     );
     const pesosInicialesCapa3Capa4 = generarEstructura(
-      data.numNeuronasCapa3,
       data.Salidas,
+      data.numNeuronasCapa3,
       -1,
       1
     );
@@ -154,6 +154,7 @@ const FormEntrenamiento = () => {
       UmbralesInicialesCapa2Capa3: JSON.stringify(umbralesInicialesCapa2Capa3),
       PesosInicialesCapa3Capa4: JSON.stringify(pesosInicialesCapa3Capa4),
       UmbralesInicialesCapa3Capa4: JSON.stringify(umbralesInicialesCapa3Capa4),
+      Entrenada: false,
     });
     console.log(data);
 
