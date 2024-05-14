@@ -90,25 +90,25 @@ const FormEntrenamiento = () => {
     );
     const pesosInicialesCapa1Capa2 = generarEstructura(
       data.numNeuronasCapa1,
-      data.numNeuronasCapa2,
+      data.numNeuronasCapa2 == 0 ? data.Salidas : data.numNeuronasCapa2,
       -1,
       1
     );
     const umbralesInicialesCapa1Capa2 = generarEstructura(
-      data.numNeuronasCapa2,
-      1,
+      data.numNeuronasCapa2 == 0 ? data.Salidas : data.numNeuronasCapa2,
+      data.numNeuronasCapa1 != 0 ? 1 : 0,
       -1,
       1
     );
     const pesosInicialesCapa2Capa3 = generarEstructura(
       data.numNeuronasCapa2,
-      data.numNeuronasCapa3,
+      data.numNeuronasCapa3 == 0 ? data.Salidas : data.numNeuronasCapa3,
       -1,
       1
     );
     const umbralesInicialesCapa2Capa3 = generarEstructura(
-      data.numNeuronasCapa3,
-      1,
+      data.numNeuronasCapa3 == 0 ? data.Salidas : data.numNeuronasCapa3,
+      data.numNeuronasCapa2 != 0 ? 1 : 0,
       -1,
       1
     );
@@ -120,7 +120,7 @@ const FormEntrenamiento = () => {
     );
     const umbralesInicialesCapa3Capa4 = generarEstructura(
       data.Salidas,
-      1,
+      data.numNeuronasCapa3 != 0 ? 1 : 0,
       -1,
       1
     );
@@ -131,7 +131,7 @@ const FormEntrenamiento = () => {
     await addDoc(collection(db, "IA-DATABASE"), {
       Nombre: data.Nombre,
       NumEntradas: data.Entradas,
-      FuncionActivacionEntrada: data.funcionActivacionEntrada,
+      // FuncionActivacionEntrada: data.funcionActivacionEntrada,
       NumSalidas: data.Salidas,
       FuncionActivacionSalida: data.funcionActivacionSalida,
       NumPatrones: data.Patrones,
@@ -217,7 +217,7 @@ const FormEntrenamiento = () => {
             />
             <b className="spam_form_error">{errors?.Entradas?.message}</b>
           </div>
-          <div className="funcionActivacionEntrada">
+          {/*           <div className="funcionActivacionEntrada">
             <label className="label__form" htmlFor="funcionActivacionEntrada">
               Funcion de Activacion de la Capa de Entrada
             </label>
@@ -233,12 +233,11 @@ const FormEntrenamiento = () => {
               id="funcionActivacionEntrada"
             >
               <option value="0">Seleccione una Funcion de Activacion</option>
-              <option value="Sigmoide">Sigmoide</option>
-              <option value="Gausiana">Gausiana</option>
-              <option value="Seno">Seno</option>
-              <option value="Lineal">Lineal</option>
+              <option value="Sigmoid">Sigmoide</option>
+              <option value="Tanh">Tangente hiperbólica o Gaussiana</option>
+              <option value="ReLU">Lineal</option>
             </select>
-          </div>
+          </div> */}
           <div className="Salidas">
             <label htmlFor="Salidas" className="label__form ">
               Salidas.
@@ -272,10 +271,10 @@ const FormEntrenamiento = () => {
               id="funcionActivacionSalida"
             >
               <option value="0">Seleccione una Funcion de Activacion</option>
-              <option value="Sigmoide">Sigmoide</option>
-              <option value="Gausiana">Gausiana</option>
-              <option value="Seno">Seno</option>
-              <option value="Lineal">Lineal</option>
+              <option value="Sigmoid">Sigmoide</option>
+              <option value="Tanh">Tangente hiperbólica o Gaussiana</option>
+              <option value="Sin">Seno</option>
+              <option value="ReLU">Lineal</option>
             </select>
           </div>
           <div className="Patrones">
@@ -383,9 +382,11 @@ const FormEntrenamiento = () => {
                     <option value="0">
                       Seleccione una Funcion de Activacion
                     </option>
-                    <option value="Sigmoide">Sigmoide</option>
-                    <option value="Gausiana">Gausiana</option>
-                    <option value="Seno">Seno</option>
+                    <option value="Sigmoid">Sigmoide</option>
+                    <option value="Sin">Seno</option>
+                    <option value="Tanh">
+                      Tangente hiperbólica o Gaussiana
+                    </option>
                   </select>
                 </div>
               </div>
