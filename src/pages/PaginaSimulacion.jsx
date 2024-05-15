@@ -4,370 +4,14 @@ import TableDrawer from "../components/TableDrawer";
 import { collection, onSnapshot, query, sum } from "firebase/firestore";
 import { db } from "../components/firebase";
 import { useForm } from "react-hook-form";
+import Umbral from "../components/Umbral";
+import Pesos from "../components/Pesos";
+import Error from "../components/Error";
+import CalcularSalidas from "../components/CalcularSalidas";
 
 const PaginaSimulacion = () => {
   // firebase
   const [dataForm, setDataform] = useState([]);
-  const [csvData, setCsvData] = useState([]);
-  //variables useState
-
-  const [selectedItem, SetSelectecItem] = useState(-1);
-  const dataItem = dataForm[selectedItem];
-
-  //variables
-
-  let count = 1;
-  let pause = false;
-  let ultimosPesos = [];
-  let ultimoUmbral = [];
-  let ERS = [];
-  const [registroEntradas, setRegistroEntradas] = useState([1]);
-
-  //Funciones
-  const handleEntradas = () => {
-    let array = [];
-    for (let index = 0; index < dataItem.NumEntradas; index++) {
-      array.push(index + 1);
-    }
-    setRegistroEntradas(array);
-  };
-  const getPatrones = (matriz, numEntradas) => {
-    let matrizNueva = [];
-    matriz.map((item) => {
-      matrizNueva.push(item.slice(0, numEntradas));
-    });
-
-    return convertirMatrizANumeros(matrizNueva);
-  };
-  function convertirMatrizANumeros(matriz) {
-    return matriz.map((fila) => fila.map((elemento) => parseFloat(elemento)));
-  }
-  function convertirArrayANumeros(matriz) {
-    return matriz.map((elemento) => parseFloat(elemento));
-  }
-  const getPesos = () => {
-    let pesos = [];
-    dataItem.PesosInicialesCapa3Capa4[0] != ""
-      ? pesos.unshift(
-          convertirMatrizANumeros(dataItem.PesosInicialesCapa3Capa4)
-        )
-      : 0;
-    dataItem.PesosInicialesCapa2Capa3[0] != ""
-      ? pesos.unshift(
-          convertirMatrizANumeros(dataItem.PesosInicialesCapa2Capa3)
-        )
-      : 0;
-    dataItem.PesosInicialesCapa1Capa2[0] != ""
-      ? pesos.unshift(
-          convertirMatrizANumeros(dataItem.PesosInicialesCapa1Capa2)
-        )
-      : 0;
-    dataItem.PesosInicialesCapa0Capa1[0] != ""
-      ? pesos.unshift(
-          convertirMatrizANumeros(dataItem.PesosInicialesCapa0Capa1)
-        )
-      : 0;
-
-    return pesos;
-  };
-
-  const getUmbrales = () => {
-    let umbrales = [];
-
-    dataItem.UmbralesInicialesCapa3Capa4[0] != ""
-      ? umbrales.unshift(
-          convertirArrayANumeros(dataItem.UmbralesInicialesCapa3Capa4)
-        )
-      : 0;
-    dataItem.UmbralesInicialesCapa2Capa3[0] != ""
-      ? umbrales.unshift(
-          convertirArrayANumeros(dataItem.UmbralesInicialesCapa2Capa3)
-        )
-      : 0;
-    dataItem.UmbralesInicialesCapa1Capa2[0] != ""
-      ? umbrales.unshift(
-          convertirArrayANumeros(dataItem.UmbralesInicialesCapa1Capa2)
-        )
-      : 0;
-    dataItem.UmbralesInicialesCapa0Capa1[0] != ""
-      ? umbrales.unshift(
-          convertirArrayANumeros(dataItem.UmbralesInicialesCapa0Capa1)
-        )
-      : 0;
-
-    return umbrales;
-  };
-  const Sigmoid = (x) => {
-    return 1 / (1 + Math.exp(-x));
-  };
-  const sigmoidDerivada = (x) => {
-    return x * (1 - x);
-  };
-  const Tanh = (x) => {
-    return Math.tanh(x);
-  };
-  function tanhDerivada(x) {
-    return 1 - x * x;
-  }
-
-  const ReLu = (x) => {
-    return Math.max(0, x);
-  };
-  function reluDerivada(x) {
-    return x < 0 ? 0 : 1;
-  }
-  function Seno(x) {
-    return Math.sin(x);
-  }
-  function senoDerivada(x) {
-    return Math.cos(x);
-  }
-  const getSalidas = (matriz, numEntradas) => {
-    let matrizNueva = [];
-    matriz.map((item) => {
-      matrizNueva.push(item.slice(numEntradas));
-    });
-    return convertirMatrizANumeros(matrizNueva);
-  };
-
-  const calcularTotalError = (predictedOutputs, expectedOutputs) => {
-    let suma = 0;
-    let last = predictedOutputs.length - 1;
-    predictedOutputs = predictedOutputs[last];
-    for (let i = 0; i < predictedOutputs.length; i++) {
-      suma += (1 / 2) * Math.pow(expectedOutputs[i] - predictedOutputs[i], 2);
-    }
-    return suma;
-  };
-
-  const calcularErrorIteracion = (erroresPatron) => {
-    return Math.abs(
-      erroresPatron.reduce((a, b) => a + b, 0) / erroresPatron.length
-    );
-  };
-  const calcularSalida = (pesosI, umbralInicial, patronI, funcAct) => {
-    /*     let patron = patronI;
-    pesosI.map((pesos, index) => {
-      let salidas = [];
-      let umbral = umbralInicial[index];
-      console.log(pesos, umbral);
-      patron = salidas;
-      pesos.map((columna, col) => {
-        let suma = 0;
-        suma += umbral[col];
-        let salida = Sigmoid(suma);
-        salidas.push(salida);
-        console.log(salidas);
-        columna.map((fila, fil) => {
-          console.log(patron[col], "*", pesos[col][fil]);
-        });
-      });
-    }); */
-    let patron = patronI;
-    let salidas = [];
-    for (let index = 0; index < umbralInicial.length; index++) {
-      let pesos = pesosI[index];
-      let umbral = umbralInicial[index];
-      let salidasTemp = [];
-      for (let i = 0; i < pesos.length; i++) {
-        let suma = 0;
-        for (let j = 0; j < pesos[0].length; j++) {
-          suma += patron[j] * pesos[i][j];
-        }
-        suma += umbral[i];
-        let salida;
-        switch (funcAct) {
-          case "Sigmoid":
-            salida = Sigmoid(suma);
-            break;
-          case "Tanh":
-            salida = Tanh(suma);
-            break;
-          case "ReLU":
-            salida = ReLu(suma);
-            break;
-          case "Sin":
-            salida = Seno(suma);
-            break;
-        }
-
-        salidasTemp.push(salida);
-      }
-      salidas.push(salidasTemp);
-      patron = salidasTemp;
-    }
-
-    return salidas;
-  };
-
-  const calcularCostoPesos = (
-    predictedOutputs,
-    expectedOutputs,
-    pesosI,
-    inputs,
-    funcAct
-  ) => {
-    let costos = [];
-    let last = predictedOutputs.length - 1;
-    let lastPesos = pesosI.length - 1;
-    for (let k = pesosI.length - 1; k >= 0; k--) {
-      console.log(pesosI);
-      let pesosTemp = pesosI[lastPesos];
-      let pesos = pesosI[k];
-      let costosTemp = [];
-      for (let i = 0; i < pesos.length; i++) {
-        let row = [];
-        let suma = 0;
-        for (let j = 0; j < pesos[0].length; j++) {
-          if (k == pesosI.length - 1) {
-            /*  console.log(
-              predictedOutputs[last][i] - expectedOutputs[i],
-              "*",
-              sigmoidDerivada(predictedOutputs[last][i]),
-              "*",
-              predictedOutputs[last - 1][j]
-            ); */
-            switch (funcAct) {
-              case "Sigmoid":
-                row.push(
-                  (predictedOutputs[last][i] - expectedOutputs[i]) *
-                    sigmoidDerivada(predictedOutputs[last][i]) *
-                    predictedOutputs[last - 1][j]
-                );
-                break;
-              case "Tanh":
-                row.push(
-                  (predictedOutputs[last][i] - expectedOutputs[i]) *
-                    tanhDerivada(predictedOutputs[last][i]) *
-                    predictedOutputs[last - 1][j]
-                );
-                break;
-              case "ReLU":
-                row.push(
-                  (predictedOutputs[last][i] - expectedOutputs[i]) *
-                    reluDerivada(predictedOutputs[last][i]) *
-                    predictedOutputs[last - 1][j]
-                );
-                break;
-            }
-          } else {
-            for (let m = 0; m < predictedOutputs[last].length; m++) {
-              switch (funcAct) {
-                case "Sigmoid":
-                  suma +=
-                    (predictedOutputs[last][m] - expectedOutputs[m]) *
-                    sigmoidDerivada(predictedOutputs[last][m]) *
-                    pesosTemp[m][j] *
-                    (predictedOutputs[last - 1][i] *
-                      (1 - predictedOutputs[last - 1][i])) *
-                    inputs[i];
-                  break;
-                case "Tanh":
-                  suma +=
-                    (predictedOutputs[last][m] - expectedOutputs[m]) *
-                    tanhDerivada(predictedOutputs[last][m]) *
-                    pesosTemp[m][j] *
-                    (predictedOutputs[last - 1][i] *
-                      (1 - predictedOutputs[last - 1][i])) *
-                    inputs[i];
-                  break;
-                case "ReLU":
-                  suma +=
-                    (predictedOutputs[last][m] - expectedOutputs[m]) *
-                    reluDerivada(predictedOutputs[last][m]) *
-                    pesosTemp[m][j] *
-                    (predictedOutputs[last - 1][i] *
-                      (1 - predictedOutputs[last - 1][i])) *
-                    inputs[i];
-                  break;
-              }
-
-              /*   console.log(
-                predictedOutputs[last][m] - expectedOutputs[m],
-                "*",
-                sigmoidDerivada(predictedOutputs[last][m]),
-                "*",
-                pesosTemp[m][j],
-                " *",
-                predictedOutputs[last - 1][i] *
-                  (1 - predictedOutputs[last - 1][i]),
-                "*",
-                inputs[i]
-              ); */
-            }
-            row.push(suma);
-          }
-        }
-        costosTemp.push(row);
-      }
-
-      costos.unshift(costosTemp);
-    }
-    return costos;
-  };
-
-  const calcularPesosNuevos = (pesosI, RataApendizaje, costosPesosI) => {
-    let pesosNuevos = [];
-    for (let index = 0; index < pesosI.length; index++) {
-      let pesos = pesosI[index];
-      let costosPesos = costosPesosI[index];
-      let pesosTemp = [];
-      for (let i = 0; i < pesos.length; i++) {
-        let row = [];
-        for (let j = 0; j < pesos[0].length; j++) {
-          row.push(pesos[i][j] - RataApendizaje * costosPesos[i][j]);
-        }
-        pesosTemp.push(row);
-      }
-      pesosNuevos.push(pesosTemp);
-    }
-    return pesosNuevos;
-  };
-
-  function stop() {
-    pause = true;
-    count = 1;
-  }
-  function start() {
-    pause = false;
-    iterarWhile();
-  }
-
-  let errorIteracion = 1;
-
-  const iterarWhile = () => {
-    let predictedOutputs = [];
-    let inputs = getPatrones(dataItem.MatrizInicial, dataItem.NumEntradas);
-    let expectedOutputs = getSalidas(
-      dataItem.MatrizInicial,
-      dataItem.NumEntradas
-    );
-    let pesos = getPesos();
-    let umbrales = getUmbrales();
-    const iteraciones = 1;
-    const errorMaximo = parseFloat(dataItem.ErrorMaximo);
-    let erroresPatron = [];
-    if (pause == false) {
-      if ((count > iteraciones) | (errorIteracion < errorMaximo)) {
-        stop();
-      } else {
-        console.log(inputs);
-        inputs.map((inputs) => {
-          // Calculamos las salidas
-          predictedOutputs = calcularSalida(pesos, umbrales, inputs, "Tanh");
-          //Calculamos el error del patron
-          console.log(
-            "Salidas Predecidas: ",
-            predictedOutputs[predictedOutputs.length - 1]
-          );
-        });
-
-        count++;
-      }
-      setTimeout(iterarWhile, 1);
-    }
-  };
-
   useEffect(() => {
     const q = query(collection(db, "IA-DATABASE"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -420,6 +64,180 @@ const PaginaSimulacion = () => {
 
     return () => unsubscribe();
   }, []);
+
+  //variables useState
+
+  const [selectedItem, SetSelectecItem] = useState(-1);
+  const [csvData, setCsvData] = useState([]);
+
+  //variables
+  const dataItem = dataForm[selectedItem];
+  let errorIteracion = 1;
+  let count = 1;
+  let pause = false;
+  let ERS = [];
+
+  // resultados del entrenamiento
+
+  let salidasObtenidas;
+  let erroresLineales;
+  let erroresNoLineales = [];
+  let erroresPatron = [];
+  let erroresIteracion = [];
+
+  //Funciones
+  function convertirMatrizANumeros(matriz) {
+    return matriz.map((fila) => fila.map((elemento) => parseFloat(elemento)));
+  }
+
+  function convertirArrayANumeros(matriz) {
+    return matriz.map((elemento) => parseFloat(elemento));
+  }
+
+  const getPatrones = (matriz, numEntradas) => {
+    let matrizNueva = [];
+    matriz.map((item) => {
+      matrizNueva.push(item.slice(0, numEntradas));
+    });
+
+    return convertirMatrizANumeros(matrizNueva);
+  };
+
+  const getPesos = () => {
+    let pesos = [];
+    dataItem.PesosInicialesCapa3Capa4[0] != ""
+      ? pesos.unshift(
+          convertirMatrizANumeros(dataItem.PesosInicialesCapa3Capa4)
+        )
+      : 0;
+    dataItem.PesosInicialesCapa2Capa3[0] != ""
+      ? pesos.unshift(
+          convertirMatrizANumeros(dataItem.PesosInicialesCapa2Capa3)
+        )
+      : 0;
+    dataItem.PesosInicialesCapa1Capa2[0] != ""
+      ? pesos.unshift(
+          convertirMatrizANumeros(dataItem.PesosInicialesCapa1Capa2)
+        )
+      : 0;
+    dataItem.PesosInicialesCapa0Capa1[0] != ""
+      ? pesos.unshift(
+          convertirMatrizANumeros(dataItem.PesosInicialesCapa0Capa1)
+        )
+      : 0;
+
+    return pesos;
+  };
+
+  const getUmbrales = () => {
+    let umbrales = [];
+
+    dataItem.UmbralesInicialesCapa3Capa4[0] != ""
+      ? umbrales.unshift(
+          convertirArrayANumeros(dataItem.UmbralesInicialesCapa3Capa4)
+        )
+      : 0;
+    dataItem.UmbralesInicialesCapa2Capa3[0] != ""
+      ? umbrales.unshift(
+          convertirArrayANumeros(dataItem.UmbralesInicialesCapa2Capa3)
+        )
+      : 0;
+    dataItem.UmbralesInicialesCapa1Capa2[0] != ""
+      ? umbrales.unshift(
+          convertirArrayANumeros(dataItem.UmbralesInicialesCapa1Capa2)
+        )
+      : 0;
+    dataItem.UmbralesInicialesCapa0Capa1[0] != ""
+      ? umbrales.unshift(
+          convertirArrayANumeros(dataItem.UmbralesInicialesCapa0Capa1)
+        )
+      : 0;
+
+    return umbrales;
+  };
+
+  const getFuncAct = () => {
+    let FuncAct = [];
+
+    dataItem.FunActivacionCapa1 != 0
+      ? FuncAct.push(dataItem.FunActivacionCapa1)
+      : 0;
+    dataItem.FunActivacionCapa2 != 0
+      ? FuncAct.push(dataItem.FunActivacionCapa2)
+      : 0;
+    dataItem.FunActivacionCapa3 != 0
+      ? FuncAct.push(dataItem.FunActivacionCapa3)
+      : 0;
+    dataItem.FuncionActivacionSalida != 0
+      ? FuncAct.push(dataItem.FuncionActivacionSalida)
+      : 0;
+
+    return FuncAct;
+  };
+  const getSalidas = (matriz, numEntradas) => {
+    let matrizNueva = [];
+    matriz.map((item) => {
+      matrizNueva.push(item.slice(numEntradas));
+    });
+    return convertirMatrizANumeros(matrizNueva);
+  };
+
+  function stop() {
+    pause = true;
+    count = 1;
+  }
+  function start() {
+    pause = false;
+    iterarWhile();
+  }
+  let pesos = [];
+  let umbrales = [];
+  const iterarWhile = () => {
+    if (count == 1) {
+      pesos = getPesos();
+      umbrales = getUmbrales();
+    }
+
+    let funcionesActivacion = getFuncAct();
+    let inputs = getPatrones(dataItem.MatrizInicial, dataItem.NumEntradas);
+    let salidasEsperadas = getSalidas(
+      dataItem.MatrizInicial,
+      dataItem.NumEntradas
+    );
+    const iteraciones = 1;
+    const rataApendizaje = dataItem.RataApendizaje;
+    const errorMaximo = parseFloat(dataItem.ErrorMaximo);
+    if (pause == false) {
+      if ((count > iteraciones) | (errorIteracion < errorMaximo)) {
+        stop();
+      } else {
+        inputs.map((inputs, index) => {
+          // Calculamos las salidas
+          salidasObtenidas = CalcularSalidas(
+            pesos,
+            umbrales,
+            inputs,
+            funcionesActivacion
+          );
+          console.log(
+            "Obtenido:",
+            salidasObtenidas[salidasObtenidas.length - 1]
+          );
+          console.log("Esperado:", salidasEsperadas[index]);
+        });
+        errorIteracion = Error.calcularErrorIteracion(erroresPatron);
+        erroresPatron = [];
+        erroresNoLineales = [];
+        erroresLineales = [];
+
+        count++;
+      }
+      setTimeout(iterarWhile, 1);
+    }
+  };
+
+  // ejecucion de funciones
+
   const {
     register,
     handleSubmit,
@@ -546,9 +364,6 @@ const PaginaSimulacion = () => {
                       />
                     </div>
                   </div>
-                  <form onSubmit={handleSubmit(onSubmit)}>
-                    {registroEntradas.map}
-                  </form>
 
                   <TableDrawer data={csvData} />
 
