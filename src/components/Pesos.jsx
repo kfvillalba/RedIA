@@ -53,9 +53,20 @@ const calcularPesosNuevos = (
               2 *
                 rataApendizaje *
                 derivada *
-                errorNolineal[fila] *
+                errorNolineal[col] *
                 entradas[fila]
           );
+          /* console.log(
+            pesos[col][fila],
+            "+",
+            2 * rataApendizaje,
+            "*",
+            derivada,
+            "*",
+            errorNolineal[col],
+            "*",
+            entradas[fila]
+          ); */
         }
       }
       pesosTemp.push(row);

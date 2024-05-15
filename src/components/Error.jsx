@@ -19,7 +19,7 @@ const calcularErrorPatron = (erroresLineales) => {
 const calcularErroresNoLineales = (erroresLineales, pesosParametro) => {
   let errores = erroresLineales;
   let ErroresNoLineales = [];
-  for (let numPesos = pesosParametro.length - 1; numPesos >= 0; numPesos--) {
+  for (let numPesos = pesosParametro.length - 1; numPesos > 0; numPesos--) {
     let pesos = pesosParametro[numPesos];
     let erroresTemp = [];
     for (let col = 0; col < pesos[0].length; col++) {

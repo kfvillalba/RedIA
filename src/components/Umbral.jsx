@@ -15,7 +15,7 @@ const calcularUmbralesNuevos = (
     let umbralTemp = [];
     let salidas = salidasObtenidas[numUmbral];
     let funcAct = funcionesActivacion[numUmbral];
-    let errorNolineal = erroresNoLineales[numUmbral + 1];
+    let errorNolineal = erroresNoLineales[numUmbral];
     for (let index = 0; index < umbral.length; index++) {
       let derivada = 0;
 
@@ -36,8 +36,8 @@ const calcularUmbralesNuevos = (
 
       if (numUmbral == last) {
         umbralTemp.push(
-          umbral[index],
-          +2 * rataApendizaje * derivada * erroresLineales[index] * 1
+          umbral[index] +
+            2 * rataApendizaje * derivada * erroresLineales[index] * 1
         );
       } else {
         umbralTemp.push(

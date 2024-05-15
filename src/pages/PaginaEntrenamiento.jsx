@@ -188,16 +188,20 @@ const PaginaEntrenamiento = () => {
     pause = false;
     iterarWhile();
   }
-
+  let pesos = [];
+  let umbrales = [];
   const iterarWhile = () => {
+    if (count == 1) {
+      pesos = getPesos();
+      umbrales = getUmbrales();
+    }
+
     let funcionesActivacion = getFuncAct();
     let inputs = getPatrones(dataItem.MatrizInicial, dataItem.NumEntradas);
     let salidasEsperadas = getSalidas(
       dataItem.MatrizInicial,
       dataItem.NumEntradas
     );
-    let pesos = getPesos();
-    let umbrales = getUmbrales();
     const iteraciones = dataItem.NumIteraciones;
     const rataApendizaje = dataItem.RataApendizaje;
     const errorMaximo = parseFloat(dataItem.ErrorMaximo);
@@ -214,6 +218,7 @@ const PaginaEntrenamiento = () => {
             inputs,
             funcionesActivacion
           );
+
           // Calculamos los Errores Lineales
 
           erroresLineales = Error.calcularErrorLineal(
