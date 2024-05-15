@@ -76,6 +76,7 @@ const PaginaEntrenamiento = () => {
   let ERS = [];
 
   // resultados del entrenamiento
+  // resultados del entrenamiento
 
   let salidasObtenidas;
   let erroresLineales;
