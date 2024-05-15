@@ -293,7 +293,6 @@ const PaginaSimulacion = () => {
                       value={index}
                       className="btn__list"
                       onClick={(e) => {
-                        console.log(dataForm);
                         SetSelectecItem(e.target.value);
                         setCsvData(
                           getPatrones(

@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import TableDrawer from "../components/TableDrawer";
-import { collection, onSnapshot, query, sum } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  sum,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../components/firebase";
 import CalcularSalidas from "../components/CalcularSalidas";
 import Error from "../components/Error";
@@ -63,7 +70,14 @@ const PaginaEntrenamiento = () => {
 
     return () => unsubscribe();
   }, []);
+  let id = 0;
+  let data = {};
 
+  const update = async () => {
+    const entrenamiento = doc(db, "IA-DATABASE", id);
+    console.log(data);
+    await updateDoc(entrenamiento, data);
+  };
   //variables useState
 
   const [selectedItem, SetSelectecItem] = useState(-1);
@@ -82,9 +96,12 @@ const PaginaEntrenamiento = () => {
   let erroresNoLineales = [];
   let erroresPatron = [];
   let erroresIteracion = [];
+  let pesos = [];
+  let umbrales = [];
 
   //Funciones
   function convertirMatrizANumeros(matriz) {
+    console.log(matriz);
     return matriz.map((fila) => fila.map((elemento) => parseFloat(elemento)));
   }
 
@@ -183,13 +200,34 @@ const PaginaEntrenamiento = () => {
   function stop() {
     pause = true;
     count = 1;
+    data = dataItem;
+    id = data.id;
+    data.MatrizInicial = JSON.stringify(data.MatrizInicial);
+    data.PesosInicialesCapa0Capa1 = JSON.stringify(pesos[0]);
+    data.UmbralesInicialesCapa0Capa1 = JSON.stringify(umbrales[0]);
+    data.PesosInicialesCapa1Capa2 = JSON.stringify(pesos[1]);
+    data.UmbralesInicialesCapa1Capa2 = JSON.stringify(umbrales[1]);
+    pesos[2]
+      ? (data.PesosInicialesCapa2Capa3 = JSON.stringify(pesos[2]))
+      : (data.PesosInicialesCapa2Capa3 = JSON.stringify([[], [], []]));
+
+    umbrales[2]
+      ? (data.UmbralesInicialesCapa2Capa3 = JSON.stringify(umbrales[2]))
+      : (data.UmbralesInicialesCapa2Capa3 = JSON.stringify([[], [], []]));
+    pesos[3]
+      ? (data.PesosInicialesCapa3Capa4 = JSON.stringify(pesos[3]))
+      : (data.PesosInicialesCapa3Capa4 = JSON.stringify([[], [], []]));
+    umbrales[3]
+      ? (data.UmbralesInicialesCapa3Capa4 = JSON.stringify(umbrales[3]))
+      : (data.UmbralesInicialesCapa3Capa4 = JSON.stringify([[], [], []]));
+
+    update();
   }
   function start() {
     pause = false;
     iterarWhile();
   }
-  let pesos = [];
-  let umbrales = [];
+
   const iterarWhile = () => {
     if (count == 1) {
       pesos = getPesos();
@@ -288,6 +326,7 @@ const PaginaEntrenamiento = () => {
                       className="btn__list"
                       onClick={(e) => {
                         SetSelectecItem(e.target.value);
+                        console.log(dataForm[e.target.value]);
                       }}
                     >
                       {item.Nombre}
